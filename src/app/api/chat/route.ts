@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
         // Save files and collect info
         for (const file of files) {
           if (file instanceof Blob) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const fileName = (file as any).name || `file-${uuidv4()}`;
             const fileType = file.type;
             const fileSize = file.size;
