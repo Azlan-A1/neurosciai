@@ -3,6 +3,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import os from 'os';
+import { ChatMessage } from '@/types/chat';
 
 // Disable body parsing to handle form data manually
 export const config = {
@@ -179,8 +180,8 @@ When files are uploaded, acknowledge them but explain that you cannot directly a
       response: data.choices[0].message.content,
       files: fileInfo.map(file => ({
         name: file.name,
-  }
-} 
+      })),
+    });
   } catch (error) {
     console.error('Detailed error in chat API route:', error);
     return NextResponse.json(
