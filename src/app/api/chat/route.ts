@@ -11,6 +11,17 @@ export const config = {
   },
 };
 
+interface RequestData {
+  message: string;
+  hasAttachments?: boolean;
+  fileCount?: number;
+  fileNames?: string[];
+}
+
+interface FileInfo {
+  name: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('API route called');
@@ -29,7 +40,7 @@ export async function POST(request: NextRequest) {
     console.log('Content-Type:', contentType);
     
     let message = '';
-    let fileInfo = [];
+    let fileInfo: FileInfo[] = [];
     
     if (contentType.includes('multipart/form-data')) {
       try {
@@ -65,9 +76,6 @@ export async function POST(request: NextRequest) {
             // Add to file info
             fileInfo.push({
               name: fileName,
-              path: filePath,
-              type: fileType,
-              size: fileSize
             });
             
             console.log(`Saved file: ${fileName} (${fileSize} bytes)`);
@@ -83,12 +91,12 @@ export async function POST(request: NextRequest) {
     } else {
       // Regular JSON request
       try {
-        const data = await request.json();
+        const data: RequestData = await request.json();
         message = data.message || '';
         
         if (data.hasAttachments) {
           console.log(`Request mentions ${data.fileCount} files, but they were not uploaded`);
-          fileInfo = data.fileNames?.map(name => ({ name })) || [];
+          fileInfo = data.fileNames?.map((name: string): FileInfo => ({ name })) || [];
         }
       } catch (e) {
         console.error('Error parsing JSON:', e);
@@ -111,7 +119,7 @@ export async function POST(request: NextRequest) {
     
     if (fileInfo.length > 0) {
       const fileDescription = fileInfo
-        .map(file => `- ${file.name}${file.type ? ` (${file.type})` : ''}`)
+        .map(file => `- ${file.name}`)
         .join('\n');
         
       prompt += `\n\nThe user has uploaded the following files:\n${fileDescription}\n\nPlease acknowledge these files.`;
@@ -171,10 +179,8 @@ When files are uploaded, acknowledge them but explain that you cannot directly a
       response: data.choices[0].message.content,
       files: fileInfo.map(file => ({
         name: file.name,
-        type: file.type,
-        size: file.size
-      }))
-    });
+  }
+} 
   } catch (error) {
     console.error('Detailed error in chat API route:', error);
     return NextResponse.json(
