@@ -24,6 +24,18 @@ interface FileInfo {
 }
 
 export async function POST(request: NextRequest) {
+  // Add CORS headers if needed
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  // Handle OPTIONS request for CORS
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { headers });
+  }
+
   try {
     console.log('API route called');
     
@@ -176,16 +188,28 @@ When files are uploaded, acknowledge them but explain that you cannot directly a
     const data = await response.json();
     console.log('Successfully got response from OpenAI');
     
-    return NextResponse.json({
-      response: data.choices[0].message.content,
-      files: fileInfo.map(file => ({
-        name: file.name,
-      })),
-    });
-  } catch (error) {
-    console.error('Detailed error in chat API route:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' }, 
+      {
+        response: data.choices[0].message.content,
+        files: fileInfo.map(file => ({
+          name: file.name,
+        })),
+      },
+      { headers } // Add headers to response
+    );
+  } catch (error) {
+    // Enhanced error logging
+    console.error('Detailed error in chat API route:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error instanceof Error ? error.constructor.name : typeof error
+    });
+    
+    return NextResponse.json(
+      { 
+        error: error instanceof Error ? error.message : 'Internal server error',
+        type: error instanceof Error ? error.constructor.name : typeof error
+      }, 
       { status: 500 }
     );
   }
