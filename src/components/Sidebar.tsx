@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Chat } from '@/types/chat';
+import { Chat, ChatMessage } from '@/types/chat';
 
 interface SidebarProps {
   chats: Chat[];
